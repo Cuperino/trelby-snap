@@ -1,4 +1,4 @@
-# trelby-snap
+# Trelby Snap
 
 Source code for screenwriting application Trelby and yaml file used to build Snap package.
 
