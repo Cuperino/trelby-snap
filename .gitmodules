@@ -1,0 +1,3 @@
+[submodule "trelby"]
+	path = trelby
+	url = https://github.com/oskusalerma/trelby
