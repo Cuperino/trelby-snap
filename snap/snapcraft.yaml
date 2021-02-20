@@ -20,25 +20,117 @@ parts:
     source: trelby
     plugin: python
     python-version: python2
-    override-build: |
-      snapcraftctl build
-      echo "deb http://old-releases.ubuntu.com/ubuntu wily main universe" | sudo tee /etc/apt/sources.list.d/wily-copies.list
+    override-pull: |
+      # Set Wily repos to get python-wxgtk2.8 package
+      # echo "deb http://old-releases.ubuntu.com/ubuntu wily main universe" | sudo tee /etc/apt/sources.list.d/wily-copies.list
+      # Set webupd8 repos to get python-wxgtk2.8 package
+      # sudo add-apt-repository ppa:nilarimogard/webupd8
+      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 531EE72F4C9D234C
+      echo "deb http://ppa.launchpad.net/nilarimogard/webupd8/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/webupd8.list
+      echo "deb-src http://ppa.launchpad.net/nilarimogard/webupd8/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/webupd8-src.list
+      # Add webupd8 signature
       sudo apt update
-      mkdir $SNAPCRAFT_PART_INSTALL/opt
-      mkdir $SNAPCRAFT_PART_INSTALL/opt/trelby
-      cp -dR * $SNAPCRAFT_PART_INSTALL/opt/trelby/
+      # Pull
+      snapcraftctl pull
+    override-build: |
+      # Name list
+      make names.txt.gz
+      # Dictionary
+      make dict_en.dat.gz
+      # Manual
+      make manual.html
+      # Manpage
+      make trelby.1.gz
+      # We don't run `make dist` instead of the 4 previous commands because we don't need the Linux distribution package in the Snap.
+      # make dist
+      # Build
+      snapcraftctl build
+      # 
+      echo "Mkdir"
+      mkdir -p $SNAPCRAFT_PART_INSTALL/opt/trelby
+      echo "Chmod1"
+      sudo chmod 0755 $SNAPCRAFT_PART_INSTALL/opt $SNAPCRAFT_PART_INSTALL/opt/trelby
+      echo "Copy"
+      cp -dRf ./* $SNAPCRAFT_PART_INSTALL/opt/trelby/
+      echo "Chmod1"
+      sudo chmod -R 0755 $SNAPCRAFT_PART_INSTALL/opt/trelby/*
+      # 
+      # mkdir -p $SNAPCRAFT_STAGE/opt/trelby
+      # cp -dRf ./* $SNAPCRAFT_STAGE/opt/trelby/
+      # 
+      # tar -xvzf $SNAPCRAFT_PART_BUILD/dist/Trelby-2.3.dev0.tar.gz
+      # cp Trelby-2.3.dev0/* $SNAPCRAFT_PART_INSTALL/opt/trelby/
+    override-stage: |
+      chmod +x $SNAPCRAFT_PART_INSTALL/opt/trelby/src/trelby.py
+      mkdir -p $SNAPCRAFT_STAGE/opt/
+      cp -dRf $SNAPCRAFT_PART_INSTALL/opt/trelby $SNAPCRAFT_STAGE/opt/
+      snapcraftctl stage
+      # cp -$SNAPCRAFT_PRIME/opt/trelby
+      # ls $SNAPCRAFT_PRIME/opt/
+      # ls $SNAPCRAFT_PRIME/opt/trelby/
+      # ls /root/parts/trelby/build/dist/
+      # stat /root/parts/trelby/build/dist/
+      # Stage
+      # tar -xvzf /root/parts/trelby/build/dist/Trelby-2.3.dev0.tar.gz
+    override-prime: |
+      snapcraftctl prime
+      # mv ./Trelby-2.3.dev0/* $SNAPCRAFT_PRIME/opt/trelby/
+      # mv ./Trelby-2.3.dev0/* $SNAPCRAFT_PRIME/opt/trelby/
+      # rm -d ./Trelby-2.3.dev0/
+    python-packages:
+    - wxPython
+    - lxml
+    build-packages:
+    - build-essential
+    - docbook-xsl
+    - xsltproc
+    - libgtk-3-dev
+    - libglpk-dev
+    # - libsdl-gfx1.2-dev
+    - lzma-dev
+    - libmspack-dev
+    - libjbig-dev
+    - libjpeg-dev
+    - freeglut3-dev
+    - python-wxgtk3.0-dev
     stage-packages:
-    # - wx-common
-    - python-lxml
-    - python-wxgtk2.8
+    - wx-common
+    # - python-wxgtk2.8
+    # - python-wxgtk2
+    - python-wxgtk3.0
     - python-wxtools
-    - wx2.8-i18n
-    # python-packages:
-    # - py2exe
+    # - python-lxml
+    - libatk-bridge2.0-0
+    - libatspi2.0-0
+    - libboost-filesystem1.58.0
+    - libboost-system1.58.0
+    - libcairo-gobject2
+    - libcapnp-0.5.3
+    - libepoxy0
+    - libgtk-3-0
+    - libmirclient9
+    - libmircommon7
+    - libmircore1
+    - libmirprotobuf3
+    - libprotobuf-lite9v5
+    - libwayland-client0
+    - libwayland-cursor0
+    - libwayland-egl1-mesa
+    - libxkbcommon0
+    - libxtst6
+    - webp
+    - zstd
+    - lzma
 apps:
   trelby:
-    command: opt/trelby/src/trelby.py
+    command: python2 $SNAP/opt/trelby/src/trelby.py
+    # command: $SNAP/bin/trelby
+    # command: trelby
     plugs:
-      - x11
-      - desktop
-      - wayland
+    - desktop
+    - desktop-legacy
+    - wayland
+    - unity7
+    - home
+    - removable-media
+    - cups-control
